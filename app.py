@@ -638,7 +638,6 @@ st.markdown("""
         background: #f5f7fa;
         padding: 6px 10px;
         border-radius: 6px;
-        border-left: 3px solid #1f77b4;
         font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Helvetica', 'Arial', sans-serif;
         display: inline-flex;
         align-items: center;
@@ -711,6 +710,7 @@ st.markdown("""
     }
     /* Document metadata styling */
     .document-metadata {
+        margin-bottom: 15px;
         font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Helvetica', 'Arial', sans-serif;
         font-size: 0.95rem;
         color: #333;
@@ -1016,7 +1016,7 @@ class InsuranceQueryApp:
                 meta_items.append(f'<div class="docket-meta-item"><span class="docket-meta-label">🆔 Docket ID</span><span class="docket-meta-value">{html.escape(str(docket_info["docket_id"]))}</span></div>')
                 
                 # Documents Count
-                meta_items.append(f'<div class="docket-meta-item"><span class="docket-meta-label">📄 Documents</span><span class="docket-meta-value">{num_docs}</span></div>')
+                # meta_items.append(f'<div class="docket-meta-item"><span class="docket-meta-label">📄 Documents</span><span class="docket-meta-value">{num_docs}</span></div>')
                 
                 # Assigned To (if available)
                 if docket_info.get('assigned_to'):
@@ -1951,7 +1951,12 @@ class InsuranceQueryApp:
         st.sidebar.title("Query Assistant")
         
         st.sidebar.markdown("### 📊 Example Queries")
-        
+        if st.sidebar.button("📊 Show All Articles", key="show_all", type="primary"):
+            st.session_state.query_text = "show all articles"
+            st.session_state.last_query = "show all articles"
+            st.session_state.current_page = 1
+            st.rerun()
+                
         st.sidebar.markdown("---")
         st.sidebar.markdown("**FAQs:**")
         
@@ -2175,7 +2180,7 @@ class InsuranceQueryApp:
     def run(self):
         """Main application loop."""
         st.markdown('<h1 class="main-header"> Emerging Insights Query System</h1>', unsafe_allow_html=True)
-        st.markdown('<p class="sub-header">Search and analyze insurance-related articles using natural language queries</p>', unsafe_allow_html=True)
+        # st.markdown('<p class="sub-header">Search and analyze insurance-related articles using natural language queries</p>', unsafe_allow_html=True)
 
         self.render_sidebar()
 
