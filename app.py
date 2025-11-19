@@ -1990,6 +1990,188 @@ class InsuranceQueryApp:
             st.write(f"Total codes available: {len(naics_data)}")
             st.write("Sample:", ", ".join([f"{n['code']}" for n in naics_data]) + "...")
 
+    # def run(self):
+    #     """Main application loop."""
+    #     st.markdown('<h1 class="main-header"> Emerging Insights Query System</h1>', unsafe_allow_html=True)
+    #     st.markdown('<p class="sub-header">Search and analyze insurance-related articles using natural language queries</p>', unsafe_allow_html=True)
+
+    #     self.render_sidebar()
+
+    #     # Initialize default session state variables if not already set
+    #     if "query_text" not in st.session_state:
+    #         st.session_state.query_text = ""          # bound to the text_area widget
+    #     if "last_query" not in st.session_state:
+    #         st.session_state.last_query = ""          # saved/committed query (history)
+    #     if "last_source_filter" not in st.session_state:
+    #         st.session_state.last_source_filter = None
+    #     if "query_results" not in st.session_state:
+    #         st.session_state.query_results = None
+    #     if "expanded_articles" not in st.session_state:
+    #         st.session_state.expanded_articles = set()
+    #     if "current_page" not in st.session_state:
+    #         st.session_state.current_page = 1
+
+    #     # Text area bound to query_text (widget key)
+    #     st.text_area(
+    #         "Describe what you're looking for:",
+    #         key="query_text",
+    #         height=100,
+    #         placeholder="Example: Show me all articles about climate change with property damage concerns..."
+    #     )
+
+    #     # Read the live widget value
+    #     query_input = st.session_state.query_text
+
+    #     # Source filter toggle
+    #     source_filter = st.radio(
+    #         "Source:",
+    #         options=["Others", "CourtListener"],
+    #         index=0,
+    #         key="source_filter_toggle",
+    #         help="Filter results by data source",
+    #         horizontal=True,
+    #         format_func=lambda x: "Others (RSS & Proquest)" if x == "Others" else x
+    #     )
+
+    #     # Clear cached results if source filter changed
+    #     if (
+    #         st.session_state.last_source_filter is not None
+    #         and st.session_state.last_source_filter != source_filter
+    #         and st.session_state.query_results is not None
+    #     ):
+    #         st.session_state.query_results = None
+    #         st.session_state.expanded_articles = set()
+    #         st.info("ℹ️ Source filter changed. Please search again to see results for the selected source.")
+
+    #     col1, col2, col3 = st.columns([1, 1, 3])
+
+    #     with col1:
+    #         search_button = st.button("🔎 Search", type="primary")
+
+    #     with col2:
+    #         clear_button = st.button("🗑️ Clear")
+
+    #     # Clear button resets everything (clear both widget and saved last_query)
+    #     if clear_button:
+    #         st.session_state.query_text = ""
+    #         st.session_state.last_query = ""
+    #         st.session_state.query_results = None
+    #         st.session_state.current_page = 1
+    #         st.session_state.expanded_articles = set()
+    #         st.rerun()
+
+    #     # Handle search
+    #     if search_button and query_input.strip():
+    #         with st.spinner("🤖 Generating and executing query..."):
+    #             payload = {"query": query_input}
+    #             if source_filter == "CourtListener":
+    #                 payload["source"] = "court_listener"
+    #             else:
+    #                 payload["source"] = "other"
+
+    #             try:
+    #                 response = requests.post(
+    #                     os.getenv("BASE_URL") + os.getenv("SEARCH_API"),
+    #                     json=payload,
+    #                     timeout=300
+    #                 )
+
+    #                 # Process API response
+    #                 if response.status_code == 200:
+    #                     try:
+    #                         data = response.json()
+    #                     except requests.exceptions.JSONDecodeError:
+    #                         st.error("❌ Invalid JSON response from API")
+    #                         with st.expander("View raw response"):
+    #                             st.text(response.text)
+    #                         return
+
+    #                     with st.expander("🐛 Debug: Raw API Response", expanded=False):
+    #                         st.json(data)
+
+    #                     if "ERROR" in data:
+    #                         st.error(f"❌ API Error: {data['ERROR'].get('message', 'Unknown error')}")
+    #                         return
+
+    #                     # Debug query details
+    #                     with st.expander("🔧 OpenSearch Query Details", expanded=False):
+    #                         query_params = data.get("query_params", {})
+    #                         st.json(query_params)
+    #                         st.markdown("---")
+    #                         st.markdown("**Query Summary:**")
+    #                         st.markdown(f"- **Source Filter:** `{data.get('source_filter', 'None')}`")
+    #                         st.markdown(f"- **User Query:** `{data.get('user_query', 'None')}`")
+
+    #                         results = data.get("results", {})
+    #                         if isinstance(results, dict) and "hits" in results:
+    #                             total = results.get("hits", {}).get("total", {})
+    #                             total_count = total.get("value", 0) if isinstance(total, dict) else total
+    #                             st.markdown(f"- **Total Hits:** `{total_count}`")
+
+    #                             hits = results.get("hits", {}).get("hits", [])
+    #                             if hits:
+    #                                 sample_sources = {
+    #                                     hit.get("_source", {}).get("source", "unknown")
+    #                                     for hit in hits[:5]
+    #                                 }
+    #                                 st.markdown(f"- **Sample Sources Found:** `{', '.join(sorted(sample_sources))}`")
+
+    #                     # Handle result data
+    #                     results = data.get("results")
+    #                     if results is None:
+    #                         if "hits" in data:
+    #                             results = data
+    #                         elif "data" in data:
+    #                             results = data.get("data")
+    #                         else:
+    #                             st.error("❌ No 'results' field found in API response")
+    #                             return
+
+    #                     if isinstance(results, str) and results == "ERROR":
+    #                         st.error("❌ Query execution failed on the backend")
+    #                         st.info("💡 Check your backend API logs for details")
+    #                         return
+
+    #                     # Store results in session state
+    #                     st.session_state.query_results = results
+
+    #                     # ✅ Save the committed query into last_query (different key than the widget)
+    #                     st.session_state.last_query = query_input
+    #                     st.session_state.last_source_filter = source_filter
+
+    #                     # Track query history
+    #                     if "query_history" not in st.session_state:
+    #                         st.session_state.query_history = []
+    #                     if query_input not in st.session_state.query_history:
+    #                         st.session_state.query_history.append(query_input)
+
+    #                 elif response.status_code == 400:
+    #                     st.error("❌ Bad Request (400): Check your query syntax")
+    #                     with st.expander("View error response"):
+    #                         st.text(response.text)
+    #                 elif response.status_code == 500:
+    #                     st.error("❌ Server Error (500): The backend encountered an error")
+    #                     with st.expander("View error response"):
+    #                         st.text(response.text)
+    #                 else:
+    #                     st.error(f"❌ HTTP Error {response.status_code}")
+    #                     with st.expander("View error response"):
+    #                         st.text(response.text)
+
+    #             except requests.exceptions.ConnectionError:
+    #                 st.error("❌ Connection Error: Cannot connect to the API server.")
+    #                 st.info(f"💡 Make sure the backend is running on {config['api']['backend_url']}")
+    #             except requests.exceptions.Timeout:
+    #                 st.error("❌ Timeout Error: The API request took too long.")
+    #             except Exception as e:
+    #                 st.error(f"⚠️ Unexpected Error: {str(e)}")
+    #                 logger.error(f"Query execution error: {e}", exc_info=True)
+
+    #     # Display results if available
+    #     if st.session_state.query_results is not None:
+    #         st.markdown("---")
+    #         self.display_results(st.session_state.query_results)
+
     def run(self):
         """Main application loop."""
         st.markdown('<h1 class="main-header"> Emerging Insights Query System</h1>', unsafe_allow_html=True)
@@ -2010,6 +2192,18 @@ class InsuranceQueryApp:
             st.session_state.expanded_articles = set()
         if "current_page" not in st.session_state:
             st.session_state.current_page = 1
+        if "clear_trigger" not in st.session_state:
+            st.session_state.clear_trigger = False
+
+        # Handle clear trigger BEFORE creating the widget
+        if st.session_state.clear_trigger:
+            st.session_state.query_text = ""
+            st.session_state.last_query = ""
+            st.session_state.query_results = None
+            st.session_state.current_page = 1
+            st.session_state.expanded_articles = set()
+            st.session_state.clear_trigger = False
+            st.rerun()
 
         # Text area bound to query_text (widget key)
         st.text_area(
@@ -2051,13 +2245,9 @@ class InsuranceQueryApp:
         with col2:
             clear_button = st.button("🗑️ Clear")
 
-        # Clear button resets everything (clear both widget and saved last_query)
+        # Clear button sets a trigger flag instead of directly modifying
         if clear_button:
-            st.session_state.query_text = ""
-            st.session_state.last_query = ""
-            st.session_state.query_results = None
-            st.session_state.current_page = 1
-            st.session_state.expanded_articles = set()
+            st.session_state.clear_trigger = True
             st.rerun()
 
         # Handle search
@@ -2171,7 +2361,6 @@ class InsuranceQueryApp:
         if st.session_state.query_results is not None:
             st.markdown("---")
             self.display_results(st.session_state.query_results)
-
 
 def main():
     try:
