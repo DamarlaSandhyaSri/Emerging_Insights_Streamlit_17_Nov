@@ -1,0 +1,11 @@
+api:
+  # backend_url: "http://localhost:8098"
+  backend_url: "http://10.94.74.220:8098"
+  endpoints:
+    search: "/v1/search-insights"
+  timeout: 300  # seconds
+  retry_attempts: 3
+  retry_delay: 1  # seconds
+
+env:
+  env_name: "local"

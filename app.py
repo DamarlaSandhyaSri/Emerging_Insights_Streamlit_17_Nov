@@ -4,16 +4,22 @@ from datetime import datetime
 import json
 import html
 from typing import Optional
-# from dynamo import DynamoDBClient
-from query_generator import OpenSearchQueryGenerator
 from logger import get_logger
 from concern_risk_misc_naics import concerns_events, emerging_risks, misc_topics, naics_data
 import streamlit.components.v1 as components
-# from CommonService.indexing.indexing import OpenSearchIndexManager
 import requests
 import asyncio
+import yaml
+with open('config.yaml', 'r') as file:
+    config = yaml.safe_load(file)
+
+import os
+from dotenv import load_dotenv
+
+load_dotenv()
 
 logger = get_logger(__name__)
+
 
 # Page configuration
 st.set_page_config(
@@ -806,7 +812,7 @@ class InsuranceQueryApp:
     def __init__(self):
         self.initialize_session_state()
         # self.dynamo_client = DynamoDBClient()
-        self.query_generator = OpenSearchQueryGenerator()
+        # self.query_generator = OpenSearchQueryGenerator()
 
         # self.os_client = OpenSearchIndexManager()
         self.index_name = "ei_articles_index-05-nov-test"  # replace with your actual index
@@ -2065,7 +2071,7 @@ class InsuranceQueryApp:
 
                 try:
                     response = requests.post(
-                        "http://localhost:8098/v1/search-insights",
+                        os.getenv("BASE_URL") + os.getenv("SEARCH_API"),
                         json=payload,
                         timeout=300
                     )
@@ -2154,7 +2160,7 @@ class InsuranceQueryApp:
 
                 except requests.exceptions.ConnectionError:
                     st.error("❌ Connection Error: Cannot connect to the API server.")
-                    st.info("💡 Make sure the backend is running on http://localhost:8098")
+                    st.info(f"💡 Make sure the backend is running on {config['api']['backend_url']}")
                 except requests.exceptions.Timeout:
                     st.error("❌ Timeout Error: The API request took too long.")
                 except Exception as e:
@@ -2166,188 +2172,6 @@ class InsuranceQueryApp:
             st.markdown("---")
             self.display_results(st.session_state.query_results)
 
-    # def run(self):
-    #     """Main application loop."""
-    #     st.markdown('<h1 class="main-header"> Emerging Insights Query System</h1>', unsafe_allow_html=True)
-    #     st.markdown('<p class="sub-header">Search and analyze insurance-related articles using natural language queries</p>', unsafe_allow_html=True)
-        
-    #     self.render_sidebar()
-        
-    #     query_input = st.text_area(
-    #         "Describe what you're looking for:",
-    #         value=st.session_state.last_query,
-    #         height=100,
-    #         placeholder="Example: Show me all articles about climate change with property damage concerns..."
-    #     )
-        
-    #     # Source filter toggle button (between query input and search button)
-    #     source_filter = st.radio(
-    #         "Source:",
-    #         options=["Others", "CourtListener"],
-    #         index=0,
-    #         key="source_filter_toggle",
-    #         help="Filter results by data source",
-    #         horizontal=True,
-    #         format_func=lambda x: "Others (RSS & Proquest)" if x == "Others" else x
-    #     )
-        
-    #     # Clear cached results if source filter changed
-    #     if (st.session_state.last_source_filter is not None and 
-    #         st.session_state.last_source_filter != source_filter and 
-    #         st.session_state.query_results is not None):
-    #         # Source filter changed - clear cached results
-    #         st.session_state.query_results = None
-    #         st.session_state.expanded_articles = set()
-    #         st.info("ℹ️ Source filter changed. Please search again to see results for the selected source.")
-        
-    #     col1, col2, col3 = st.columns([1, 1, 3])
-        
-    #     with col1:
-    #         search_button = st.button("🔎 Search", type="primary")
-        
-    #     with col2:
-    #         clear_button = st.button("🗑️ Clear")
-        
-    #     if clear_button:
-    #         st.session_state.last_query = ""
-    #         st.session_state.query_results = None
-    #         st.session_state.current_page = 1
-    #         st.session_state.expanded_articles = set()
-    #         st.rerun()
-        
-    #     if search_button and query_input.strip():
-    #         with st.spinner("🤖 Generating and executing query..."):
-    #             # Build payload with source filter
-    #             payload = {"query": query_input}
-    #             if source_filter == "CourtListener":
-    #                 # Filter for CourtListener only
-    #                 payload["source"] = "court_listener"
-    #             elif source_filter == "Others":
-    #                 # Filter for everything except CourtListener
-    #                 # We'll handle this in the backend by excluding court_listener
-    #                 payload["source"] = "other"
-
-    #             try:
-    #                 response = requests.post(
-    #                     "http://localhost:8098/v1/search-insights", 
-    #                     json=payload,
-    #                     timeout=180  # Add timeout
-    #                 )
-                    
-    #                 # Check HTTP status
-    #                 if response.status_code == 200:
-    #                     try:
-    #                         data = response.json()
-                            
-    #                         # Debug: Show the generated query (already shown below, but keep for consistency)
-    #                         # The query details will be shown in the expander below
-    #                     except requests.exceptions.JSONDecodeError:
-    #                         st.error("❌ Invalid JSON response from API")
-    #                         with st.expander("View raw response"):
-    #                             st.text(response.text)
-    #                         return
-                        
-    #                     # Debug: Show raw response structure
-    #                     with st.expander("🐛 Debug: Raw API Response", expanded=False):
-    #                         st.json(data)
-                        
-    #                     # Check if the response contains an error at top level
-    #                     if "ERROR" in data:
-    #                         st.error(f"❌ API Error: {data['ERROR'].get('message', 'Unknown error')}")
-    #                         return
-                        
-    #                     # Display OpenSearch Query Details with enhanced debugging
-    #                     with st.expander("🔧 OpenSearch Query Details", expanded=False):
-    #                         query_params = data.get("query_params", {})
-    #                         st.json(query_params)
-    #                         st.markdown("---")
-    #                         st.markdown("**Query Summary:**")
-    #                         st.markdown(f"- **Source Filter:** `{data.get('source_filter', 'None')}`")
-    #                         st.markdown(f"- **User Query:** `{data.get('user_query', 'None')}`")
-                            
-    #                         # Show raw results summary
-    #                         results = data.get("results", {})
-    #                         if isinstance(results, dict) and "hits" in results:
-    #                             total = results.get("hits", {}).get("total", {})
-    #                             if isinstance(total, dict):
-    #                                 total_count = total.get("value", 0)
-    #                             else:
-    #                                 total_count = total
-    #                             st.markdown(f"- **Total Hits:** `{total_count}`")
-                                
-    #                             # Show sample sources if available
-    #                             hits = results.get("hits", {}).get("hits", [])
-    #                             if hits:
-    #                                 sample_sources = set()
-    #                                 for hit in hits[:5]:
-    #                                     source = hit.get("_source", {}).get("source", "unknown")
-    #                                     sample_sources.add(source)
-    #                                 st.markdown(f"- **Sample Sources Found:** `{', '.join(sorted(sample_sources))}`")
-                        
-    #                     # Get results - handle different response structures
-    #                     results = data.get("results")
-                        
-    #                     # If results is None, check for other common keys
-    #                     if results is None:
-    #                         if "hits" in data:
-    #                             results = data
-    #                         elif "data" in data:
-    #                             results = data.get("data")
-    #                         else:
-    #                             st.error("❌ No 'results' field found in API response")
-    #                             return
-                        
-    #                     # Validate results format
-    #                     if isinstance(results, str) and results == "ERROR":
-    #                         st.error("❌ Query execution failed on the backend")
-    #                         st.info("💡 Check your backend API logs for details")
-    #                         return
-                        
-    #                     # Calculate result count (for internal use, not displayed)
-    #                     if isinstance(results, list):
-    #                         result_count = len(results)
-    #                     elif isinstance(results, dict) and "hits" in results:
-    #                         result_count = len(results.get("hits", {}).get("hits", []))
-    #                     else:
-    #                         result_count = "unknown"
-                        
-    #                     # Store results in session state
-    #                     st.session_state.query_results = results
-    #                     st.session_state.last_query = query_input
-    #                     st.session_state.last_source_filter = source_filter  # Track which filter was used
-                        
-    #                     # Update query history
-    #                     if 'query_history' not in st.session_state:
-    #                         st.session_state.query_history = []
-    #                     if query_input not in st.session_state.query_history:
-    #                         st.session_state.query_history.append(query_input)
-                        
-    #                 elif response.status_code == 400:
-    #                     st.error(f"❌ Bad Request (400): Check your query syntax")
-    #                     with st.expander("View error response"):
-    #                         st.text(response.text)
-    #                 elif response.status_code == 500:
-    #                     st.error(f"❌ Server Error (500): The backend encountered an error")
-    #                     with st.expander("View error response"):
-    #                         st.text(response.text)
-    #                 else:
-    #                     st.error(f"❌ HTTP Error {response.status_code}")
-    #                     with st.expander("View error response"):
-    #                         st.text(response.text)
-
-    #             except requests.exceptions.ConnectionError:
-    #                 st.error("❌ Connection Error: Cannot connect to the API server.")
-    #                 st.info("💡 Make sure the backend is running on http://localhost:8098")
-    #             except requests.exceptions.Timeout:
-    #                 st.error("❌ Timeout Error: The API request took too long.")
-    #             except Exception as e:
-    #                 st.error(f"⚠️ Unexpected Error: {str(e)}")
-    #                 logger.error(f"Query execution error: {e}", exc_info=True)
-
-    #     # Display results if available
-    #     if st.session_state.query_results is not None:
-    #         st.markdown("---")
-    #         self.display_results(st.session_state.query_results)
 
 def main():
     try:

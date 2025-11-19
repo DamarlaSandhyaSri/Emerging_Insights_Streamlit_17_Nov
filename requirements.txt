@@ -6,3 +6,5 @@ tqdm
 python-dateutil
 streamlit
 pandas
+PyYAML
+
