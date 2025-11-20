@@ -1121,23 +1121,72 @@ class InsuranceQueryApp:
                                     import streamlit.components.v1 as components
                                     # Escape the URL for use in JavaScript (handle quotes and backslashes)
                                     escaped_url = pdf_url.replace("\\", "\\\\").replace("'", "\\'").replace('"', '\\"').replace('\n', '\\n').replace('\r', '\\r')
+                                    # components.html(f"""
+                                    # <div style="margin-top: 10px; display: flex; gap: 5px; align-items: center;">
+                                    #     <a href="{html.escape(pdf_url)}" target="_blank" style="text-decoration: none;">
+                                    #         <button style="background-color: #4CAF50; color: white; padding: 8px 16px; border-radius: 5px; font-weight: bold; border: none; cursor: pointer;">
+                                    #             Source
+                                    #         </button>
+                                    #     </a>
+                                    #     <button style="background-color: #4CAF50; color: white; padding: 8px 16px; border-radius: 5px; font-weight: bold; border: none; cursor: pointer;" onclick="
+                                    #         navigator.clipboard.writeText('{escaped_url}').then(() => {{
+                                    #             const original = this.innerText;
+                                    #             this.innerText = '✅ Copied';
+                                    #             setTimeout(() => this.innerText = original, 1500);
+                                    #         }})
+                                    #     ">📋 Copy URL</button>
+                                    # </div>
+                                    # """, height=50)
                                     components.html(f"""
-                                    <div style="margin-top: 10px; display: flex; gap: 5px; align-items: center;">
-                                        <a href="{html.escape(pdf_url)}" target="_blank" style="text-decoration: none;">
-                                            <button style="background-color: #4CAF50; color: white; padding: 8px 16px; border-radius: 5px; font-weight: bold; border: none; cursor: pointer;">
-                                                Source
+                                        <div style="margin-top: 10px; display: flex; gap: 5px; align-items: center;">
+                                            <a href="{html.escape(pdf_url)}" target="_blank" style="text-decoration: none;">
+                                                <button style="background-color: #4CAF50; color: white; padding: 8px 16px; 
+                                                            border-radius: 5px; font-weight: bold; border: none; cursor: pointer;">
+                                                    Source
+                                                </button>
+                                            </a>
+                                            <button id="copyUrlBtn_{docket_key}_{tab_idx}" 
+                                                    style="background-color: #4CAF50; color: white; padding: 8px 16px; 
+                                                        border-radius: 5px; font-weight: bold; border: none; cursor: pointer;">
+                                                📋 Copy URL
                                             </button>
-                                        </a>
-                                        <button style="background-color: #4CAF50; color: white; padding: 8px 16px; border-radius: 5px; font-weight: bold; border: none; cursor: pointer;" onclick="
-                                            navigator.clipboard.writeText('{escaped_url}').then(() => {{
-                                                const original = this.innerText;
-                                                this.innerText = '✅ Copied';
-                                                setTimeout(() => this.innerText = original, 1500);
-                                            }})
-                                        ">📋 Copy URL</button>
-                                    </div>
-                                    """, height=50)
-                            
+                                        </div>
+                                        <script>
+                                            (function() {{
+                                                const button = document.getElementById('copyUrlBtn_{docket_key}_{tab_idx}');
+                                                const url = '{escaped_url}';
+                                                
+                                                button.onclick = function() {{
+                                                    // Create temporary textarea for copying (works in iframes)
+                                                    const textarea = document.createElement('textarea');
+                                                    textarea.value = url;
+                                                    textarea.style.position = 'fixed';
+                                                    textarea.style.left = '-9999px';
+                                                    textarea.style.opacity = '0';
+                                                    document.body.appendChild(textarea);
+                                                    textarea.select();
+                                                    textarea.setSelectionRange(0, 99999);
+                                                    
+                                                    try {{
+                                                        const successful = document.execCommand('copy');
+                                                        if (successful) {{
+                                                            const original = this.innerText;
+                                                            this.innerText = '✅ Copied';
+                                                            setTimeout(() => this.innerText = original, 1500);
+                                                        }} else {{
+                                                            this.innerText = '❌ Failed';
+                                                            setTimeout(() => this.innerText = '📋 Copy URL', 1500);
+                                                        }}
+                                                    }} catch (err) {{
+                                                        this.innerText = '❌ Failed';
+                                                        setTimeout(() => this.innerText = '📋 Copy URL', 1500);
+                                                    }} finally {{
+                                                        document.body.removeChild(textarea);
+                                                    }}
+                                                }};
+                                            }})();
+                                        </script>
+                                        """, height=50)
                             with doc_col2:
                                 tag = document.get('tag', 'Untagged')
                                 st.markdown(f"**🏷️ Tag:** {self.format_tag(tag)}", unsafe_allow_html=True)
@@ -1170,22 +1219,73 @@ class InsuranceQueryApp:
                                 button_id = f"copy_content_{docket_key}_{tab_idx}"
                                 components.html(f"""
                                 <div style="margin-top: 10px; display: flex; gap: 5px; align-items: center;">
-                                    <button id="{button_id}" style="background-color: #1f77b4; color: white; padding: 8px 16px; border-radius: 5px; font-weight: bold; border: none; cursor: pointer;">📋 Copy Content</button>
-                                    <script>
-                                        (function() {{
-                                            const button = document.getElementById('{button_id}');
-                                            const content = {escaped_content_js};
-                                            button.onclick = function() {{
-                                                navigator.clipboard.writeText(content).then(() => {{
+                                    <button id="{button_id}" 
+                                        style="background-color: #1f77b4; color: white; padding: 8px 16px; 
+                                            border-radius: 5px; font-weight: bold; border: none; cursor: pointer;">
+                                        📋 Copy Content
+                                    </button>
+                                </div>
+                                <script>
+                                    (function() {{
+                                        const button = document.getElementById('{button_id}');
+                                        const content = {escaped_content_js};
+                                        
+                                        button.onclick = function() {{
+                                            // Create temporary textarea for copying (works in iframes)
+                                            const textarea = document.createElement('textarea');
+                                            textarea.value = content;
+                                            textarea.style.position = 'fixed';
+                                            textarea.style.left = '-9999px';
+                                            textarea.style.opacity = '0';
+                                            document.body.appendChild(textarea);
+                                            textarea.select();
+                                            textarea.setSelectionRange(0, 99999); // For mobile devices
+                                            
+                                            try {{
+                                                const successful = document.execCommand('copy');
+                                                if (successful) {{
                                                     const original = this.innerText;
                                                     this.innerText = '✅ Copied';
                                                     setTimeout(() => this.innerText = original, 1500);
-                                                }});
-                                            }};
-                                        }})();
-                                    </script>
-                                </div>
+                                                }} else {{
+                                                    this.innerText = '❌ Failed';
+                                                    setTimeout(() => this.innerText = '📋 Copy Content', 1500);
+                                                }}
+                                            }} catch (err) {{
+                                                console.error('Copy failed:', err);
+                                                this.innerText = '❌ Failed';
+                                                setTimeout(() => this.innerText = '📋 Copy Content', 1500);
+                                            }} finally {{
+                                                document.body.removeChild(textarea);
+                                            }}
+                                        }};
+                                    }})();
+                                </script>
                                 """, height=50)
+                            # if content and content != 'No content available':
+                            #     import streamlit.components.v1 as components
+                            #     # Escape content for JavaScript using JSON encoding (safer for all special characters)
+                            #     escaped_content_js = json.dumps(str(content))
+                            #     # Use a unique ID for the button to avoid conflicts
+                            #     button_id = f"copy_content_{docket_key}_{tab_idx}"
+                            #     components.html(f"""
+                            #     <div style="margin-top: 10px; display: flex; gap: 5px; align-items: center;">
+                            #         <button id="{button_id}" style="background-color: #1f77b4; color: white; padding: 8px 16px; border-radius: 5px; font-weight: bold; border: none; cursor: pointer;">📋 Copy Content</button>
+                            #         <script>
+                            #             (function() {{
+                            #                 const button = document.getElementById('{button_id}');
+                            #                 const content = {escaped_content_js};
+                            #                 button.onclick = function() {{
+                            #                     navigator.clipboard.writeText(content).then(() => {{
+                            #                         const original = this.innerText;
+                            #                         this.innerText = '✅ Copied';
+                            #                         setTimeout(() => this.innerText = original, 1500);
+                            #                     }});
+                            #                 }};
+                            #             }})();
+                            #         </script>
+                            #     </div>
+                            #     """, height=50)
                             
                             st.markdown("<br>", unsafe_allow_html=True)
 
@@ -1330,7 +1430,7 @@ class InsuranceQueryApp:
                         <a href="{url}" target="_blank" style="text-decoration: none;">
                             <button style="background-color: #4CAF50; color: white; padding: 5px 12px; border-radius: 5px; font-weight: bold; display: inline-block;">Source</button>
                         </a>
-                        <button id="copyBtn" style="background-color: #4CAF50; color: white; padding: 5px 12px; border-radius: 5px; font-weight: bold; display: inline-block;">📋 Copy</button>
+                        <button id="copyBtn" style="background-color: #4CAF50; color: white; padding: 5px 12px; border-radius: 5px; font-weight: bold; display: inline-block;">📋 Copy URL</button>
                     </div>
                     <script>
                         document.getElementById('copyBtn').addEventListener('click', function() {{
@@ -1353,11 +1453,11 @@ class InsuranceQueryApp:
                                     setTimeout(() => button.innerText = original, 1500);
                                 }} else {{
                                     button.innerText = '❌ Failed';
-                                    setTimeout(() => button.innerText = '📋 Copy', 1500);
+                                    setTimeout(() => button.innerText = '📋 Copy URL', 1500);
                                 }}
                             }} catch (err) {{
                                 button.innerText = '❌ Failed';
-                                setTimeout(() => button.innerText = '📋 Copy', 1500);
+                                setTimeout(() => button.innerText = '📋 Copy URL', 1500);
                             }} finally {{
                                 document.body.removeChild(textarea);
                             }}
