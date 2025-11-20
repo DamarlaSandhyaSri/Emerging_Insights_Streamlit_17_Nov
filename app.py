@@ -1330,15 +1330,54 @@ class InsuranceQueryApp:
                         <a href="{url}" target="_blank" style="text-decoration: none;">
                             <button style="background-color: #4CAF50; color: white; padding: 5px 12px; border-radius: 5px; font-weight: bold; display: inline-block;">Source</button>
                         </a>
-                        <button style="background-color: #4CAF50; color: white; padding: 5px 12px; border-radius: 5px; font-weight: bold; display: inline-block;" onclick="
-                            navigator.clipboard.writeText('{url}').then(() => {{
-                                const original = this.innerText;
-                                this.innerText = '✅ Copied';
-                                setTimeout(() => this.innerText = original, 1500);
-                            }})
-                        ">📋 Copy</button>
+                        <button id="copyBtn" style="background-color: #4CAF50; color: white; padding: 5px 12px; border-radius: 5px; font-weight: bold; display: inline-block;">📋 Copy</button>
                     </div>
+                    <script>
+                        document.getElementById('copyBtn').addEventListener('click', function() {{
+                            const url = '{url}';
+                            const button = this;
+                            
+                            // Fallback method that works in iframes
+                            const textarea = document.createElement('textarea');
+                            textarea.value = url;
+                            textarea.style.position = 'fixed';
+                            textarea.style.opacity = '0';
+                            document.body.appendChild(textarea);
+                            textarea.select();
+                            
+                            try {{
+                                const successful = document.execCommand('copy');
+                                if (successful) {{
+                                    const original = button.innerText;
+                                    button.innerText = '✅ Copied';
+                                    setTimeout(() => button.innerText = original, 1500);
+                                }} else {{
+                                    button.innerText = '❌ Failed';
+                                    setTimeout(() => button.innerText = '📋 Copy', 1500);
+                                }}
+                            }} catch (err) {{
+                                button.innerText = '❌ Failed';
+                                setTimeout(() => button.innerText = '📋 Copy', 1500);
+                            }} finally {{
+                                document.body.removeChild(textarea);
+                            }}
+                        }});
+                    </script>
                     """, height=50)
+                    # components.html(f"""
+                    # <div style="display: flex; gap: 5px; align-items: center;">
+                    #     <a href="{url}" target="_blank" style="text-decoration: none;">
+                    #         <button style="background-color: #4CAF50; color: white; padding: 5px 12px; border-radius: 5px; font-weight: bold; display: inline-block;">Source</button>
+                    #     </a>
+                    #     <button style="background-color: #4CAF50; color: white; padding: 5px 12px; border-radius: 5px; font-weight: bold; display: inline-block;" onclick="
+                    #         navigator.clipboard.writeText('{url}').then(() => {{
+                    #             const original = this.innerText;
+                    #             this.innerText = '✅ Copied';
+                    #             setTimeout(() => this.innerText = original, 1500);
+                    #         }})
+                    #     ">📋 Copy</button>
+                    # </div>
+                    # """, height=50)
 
             # Full details inside the expander
             st.markdown('<div class="full-content">', unsafe_allow_html=True)
