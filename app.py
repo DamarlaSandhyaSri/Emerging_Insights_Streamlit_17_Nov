@@ -1347,6 +1347,34 @@ class InsuranceQueryApp:
             # Use selectable div for consistency with CourtListener
             escaped_content = html.escape(str(full_data))
             st.markdown(f'<div class="selectable-content">{escaped_content}</div>', unsafe_allow_html=True)
+            # Copy content button for RSS / ProQuest just like CourtListener
+            if full_data and full_data != 'No full content available':
+                import streamlit.components.v1 as components
+                escaped_content_js = json.dumps(str(full_data))  # safe JSON encoding
+                button_id = f"copy_article_content_{index}"
+
+                components.html(f"""
+                <div style="margin-top: 10px; display: flex; gap: 5px; align-items: center;">
+                    <button id="{button_id}"
+                        style="background-color: #1f77b4; color: white; padding: 8px 16px;
+                            border-radius: 5px; font-weight: bold; border: none; cursor: pointer;">
+                        📋 Copy Content
+                    </button>
+                    <script>
+                        (function() {{
+                            const btn = document.getElementById('{button_id}');
+                            const content = {escaped_content_js};
+                            btn.onclick = function() {{
+                                navigator.clipboard.writeText(content).then(() => {{
+                                    const original = btn.innerText;
+                                    btn.innerText = "✅ Copied";
+                                    setTimeout(() => btn.innerText = original, 1500);
+                                }});
+                            }};
+                        }})();
+                    </script>
+                </div>
+                """, height=50)
 
             # Additional metadata
             st.markdown("### 📊 Classification Details")
