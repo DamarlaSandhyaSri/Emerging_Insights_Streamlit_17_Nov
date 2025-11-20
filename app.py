@@ -1392,28 +1392,71 @@ class InsuranceQueryApp:
                 escaped_content_js = json.dumps(str(full_data))  # safe JSON encoding
                 button_id = f"copy_article_content_{index}"
 
+                # components.html(f"""
+                # <div style="margin-top: 10px; display: flex; gap: 5px; align-items: center;">
+                #     <button id="{button_id}"
+                #         style="background-color: #1f77b4; color: white; padding: 8px 16px;
+                #             border-radius: 5px; font-weight: bold; border: none; cursor: pointer;">
+                #         📋 Copy Content
+                #     </button>
+                #     <script>
+                #         (function() {{
+                #             const btn = document.getElementById('{button_id}');
+                #             const content = {escaped_content_js};
+                #             btn.onclick = function() {{
+                #                 navigator.clipboard.writeText(content).then(() => {{
+                #                     const original = btn.innerText;
+                #                     btn.innerText = "✅ Copied";
+                #                     setTimeout(() => btn.innerText = original, 1500);
+                #                 }});
+                #             }};
+                #         }})();
+                #     </script>
+                # </div>
+                # """, height=50)
                 components.html(f"""
-                <div style="margin-top: 10px; display: flex; gap: 5px; align-items: center;">
-                    <button id="{button_id}"
-                        style="background-color: #1f77b4; color: white; padding: 8px 16px;
-                            border-radius: 5px; font-weight: bold; border: none; cursor: pointer;">
-                        📋 Copy Content
-                    </button>
+                    <div style="margin-top: 10px; display: flex; gap: 5px; align-items: center;">
+                        <button id="{button_id}"
+                            style="background-color: #1f77b4; color: white; padding: 8px 16px;
+                                border-radius: 5px; font-weight: bold; border: none; cursor: pointer;">
+                            📋 Copy Content
+                        </button>
+                    </div>
                     <script>
                         (function() {{
                             const btn = document.getElementById('{button_id}');
                             const content = {escaped_content_js};
+                            
                             btn.onclick = function() {{
-                                navigator.clipboard.writeText(content).then(() => {{
-                                    const original = btn.innerText;
-                                    btn.innerText = "✅ Copied";
-                                    setTimeout(() => btn.innerText = original, 1500);
-                                }});
+                                // Create temporary textarea for copying
+                                const textarea = document.createElement('textarea');
+                                textarea.value = content;
+                                textarea.style.position = 'fixed';
+                                textarea.style.opacity = '0';
+                                document.body.appendChild(textarea);
+                                textarea.select();
+                                
+                                try {{
+                                    const successful = document.execCommand('copy');
+                                    if (successful) {{
+                                        const original = btn.innerText;
+                                        btn.innerText = "✅ Copied";
+                                        setTimeout(() => btn.innerText = original, 1500);
+                                    }} else {{
+                                        btn.innerText = "❌ Failed";
+                                        setTimeout(() => btn.innerText = "📋 Copy Content", 1500);
+                                    }}
+                                }} catch (err) {{
+                                    btn.innerText = "❌ Failed";
+                                    setTimeout(() => btn.innerText = "📋 Copy Content", 1500);
+                                }} finally {{
+                                    document.body.removeChild(textarea);
+                                }}
                             }};
                         }})();
                     </script>
-                </div>
-                """, height=50)
+                    """, height=50)
+
 
             # Additional metadata
             st.markdown("### 📊 Classification Details")
