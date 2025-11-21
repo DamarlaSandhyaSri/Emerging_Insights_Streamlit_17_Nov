@@ -1107,6 +1107,7 @@ class InsuranceQueryApp:
                             doc_title = self.clean_document_title(doc_title_raw)
                             doc_type = doc_meta.get('document_type') or 'Document'
                             doc_id = doc_meta.get('document_id') or doc_meta.get('documentId') or ''
+                            doc_score = document.get('_score')
                             pdf_url = doc_meta.get('pdf_url') or ''
                             
                             # Document metadata with improved styling
@@ -1116,6 +1117,7 @@ class InsuranceQueryApp:
                                 st.markdown(f"**📄 Title:** {doc_title}")
                                 if doc_id:
                                     st.markdown(f"**🆔 Document ID:** {doc_id}")
+                                
                                 # Replace PDF URL with View Source and Copy buttons
                                 if pdf_url:
                                     import streamlit.components.v1 as components
@@ -1192,6 +1194,8 @@ class InsuranceQueryApp:
                                 st.markdown(f"**🏷️ Tag:** {self.format_tag(tag)}", unsafe_allow_html=True)
                                 source = document.get('source', 'Unknown')
                                 st.markdown(f"**📰 Source:** {source}")
+                                if doc_score:
+                                    st.markdown(f"**Score:** {doc_score}")
                             
                             st.markdown('</div>', unsafe_allow_html=True)
                             st.markdown("---")
@@ -1693,7 +1697,7 @@ class InsuranceQueryApp:
             with col1:
                 st.markdown(f"""
                 <div class="stats-box">
-                    <h2 style="color:#1f77b4;">Total Records</h2>
+                    <h2 style="color:#1f77b4;">Total Documents</h2>
                     <h3>{total_documents_initial}</h3>
                 </div>
                 """, unsafe_allow_html=True)
@@ -1997,7 +2001,7 @@ class InsuranceQueryApp:
         with col1:
             st.markdown(f"""
             <div class="stats-box">
-                <h2 style="color:#1f77b4;">Total Records</h2>
+                <h2 style="color:#1f77b4;">Total Documents</h2>
                 <h3>{len(df)}</h3>
             </div>
             """, unsafe_allow_html=True)
