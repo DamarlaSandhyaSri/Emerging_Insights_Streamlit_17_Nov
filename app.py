@@ -804,6 +804,7 @@ st.markdown("""
     .summary-toggle-btn:hover {
         color: #333333 !important;
     }
+            
 </style>
 """, unsafe_allow_html=True)
 
@@ -1371,7 +1372,7 @@ class InsuranceQueryApp:
 
         # Extract article data
         title = str(article.get('title') or 'Untitled Article')[:200]
-        summary = article.get('reason_identified', article.get('description', 'No summary available'))[:300]
+        summary = article.get('reason_identified', article.get('description', 'No summary available'))
         print(summary)
         source = article.get('source', 'Unknown Source')
 
@@ -1484,7 +1485,7 @@ class InsuranceQueryApp:
                     # """, height=50)
 
             # Full details inside the expander
-            st.markdown('<div class="full-content">', unsafe_allow_html=True)
+            # st.markdown('<div class="full-content">', unsafe_allow_html=True)
             st.markdown("### 📄 Full Article Content")
             full_data = article.get('data', 'No full content available')
             # Use selectable div for consistency with CourtListener
@@ -1752,7 +1753,7 @@ class InsuranceQueryApp:
                 with filter_col2:
                     if 'source' in df.columns:
                         # Get unique sources, handling NaN values
-                        unique_sources = [s for s in df['source'].dropna().unique().tolist() if s]
+                        unique_sources = [s for s in sorted(df['source'].dropna().unique().tolist()) if s]
                         if unique_sources:
                             source_filter = st.multiselect(
                                 "Filter by source:",
@@ -2051,9 +2052,10 @@ class InsuranceQueryApp:
         
         with filter_col2:
             if 'source' in df.columns:
+                options = sorted(df['source'].dropna().unique().tolist())
                 source_filter = st.multiselect(
                     "Filter by source:",
-                    options=df['source'].dropna().unique().tolist(),
+                    options=options,
                     key="source_filter"
                 )
                 if source_filter:
@@ -2077,8 +2079,8 @@ class InsuranceQueryApp:
         st.markdown('</div>', unsafe_allow_html=True)
         
         # Apply sorting
-        if sort_by == "Most Recent" and 'date_time' in df.columns:
-            df = df.sort_values('date_time', ascending=False)
+        if sort_by == "Most Recent" and 'published_time' in df.columns:
+            df = df.sort_values('published_time', ascending=False)
         elif sort_by == "Title A-Z" and 'title' in df.columns:
             df = df.sort_values('title')
         elif sort_by == "source" and 'source' in df.columns:
